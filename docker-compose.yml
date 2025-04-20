@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  auth_service:
+    build: ./auth_service
+    env_file: auth_service/.env
+    depends_on:
+      - db
+    ports:
+      - "5023:5023"
+    environment:
+      DB_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}"
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+
+  post_service:
+    build: ./post_service
+    env_file: auth_service/.env
+    depends_on:
+      - db
+    ports:
+      - "5001:5001"
+    environment:
+      DB_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}"
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+
+volumes:
+  postgres_data:
